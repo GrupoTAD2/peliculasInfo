@@ -212,4 +212,36 @@ public class DAO {
         }
     }
     
+    public void eliminarPelicula(int idPelicula) throws SQLException {
+        String deleteTableSQL = "DELETE FROM pelicula WHERE idPelicula='" + idPelicula + "'";
+        System.out.print("SQL: " + deleteTableSQL);
+        PreparedStatement preparedStatement = this.getConn().prepareStatement(deleteTableSQL);
+        int retorno = preparedStatement.executeUpdate();
+    }
+    
+    public void eliminarActor(int idActor) throws SQLException {
+        String deleteTableSQL = "DELETE FROM actor WHERE idActor='" + idActor + "'";
+        PreparedStatement preparedStatement = this.getConn().prepareStatement(deleteTableSQL);
+        int retorno = preparedStatement.executeUpdate();
+    }
+    
+    public void eliminarDirector(int idDirector) throws SQLException {
+        String deleteTableSQL = "DELETE FROM director WHERE idDirector='" + idDirector + "'";
+        PreparedStatement preparedStatement = this.getConn().prepareStatement(deleteTableSQL);
+        int retorno = preparedStatement.executeUpdate();
+    }
+    
+    public void actualizarActor(int idActor, String nombre, String apellidos) throws SQLException {
+        String updateTableSQL = "UPDATE actor SET nombre='" + nombre + "', apellidos='" + apellidos + "' WHERE idActor='" + idActor + "'";
+        System.out.print("sql: " + updateTableSQL);
+        PreparedStatement preparedStatement = this.getConn().prepareStatement(updateTableSQL);
+        int retorno = preparedStatement.executeUpdate();
+    }
+    
+    public void actualizarDirector(int idDirector, String nombre, String apellidos) throws SQLException {
+        String updateTableSQL = "UPDATE director SET nombre='" + nombre + "', apellidos='" + apellidos + "' WHERE idDirector='" + idDirector + "'";
+        System.out.print("sql: " + updateTableSQL);
+        PreparedStatement preparedStatement = this.getConn().prepareStatement(updateTableSQL);
+        int retorno = preparedStatement.executeUpdate();
+    }
 }

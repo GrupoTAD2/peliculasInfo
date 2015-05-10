@@ -8,13 +8,18 @@ import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.server.ClassResource;
+import com.vaadin.server.ExternalResource;
+import com.vaadin.server.Resource;
 import com.vaadin.server.Sizeable;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalSplitPanel;
+import com.vaadin.ui.Image;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextArea;
@@ -23,11 +28,20 @@ import com.vaadin.ui.Tree;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.vaadin.easyuploads.MultiFileUpload;
 
 /**
  *
@@ -70,7 +84,7 @@ public class Admin extends UI {
                 tree1.setParent(p, pel);
                 tree1.setChildrenAllowed(p, false);
             }
-            Tree tree2 = new Tree("");
+            final Tree tree2 = new Tree("");
             String act = "Actores";
             tree2.addItem(act);
             for (Actor a : listaActores) {
@@ -173,6 +187,22 @@ public class Admin extends UI {
                             }
                         });
                         v2.addComponent(button);
+                        
+                        Button btnEliminar = new Button("Eliminar");
+                        btnEliminar.addClickListener(new Button.ClickListener() {
+                            @Override
+                            public void buttonClick(Button.ClickEvent event) {
+                                try {
+                                    dao.abrirConexion();
+                                    System.out.printf("idPelicula" + p.getIdPelicula());
+                                    dao.eliminarPelicula(p.getIdPelicula());
+                                    Notification.show("Hecho", "La pelicula ha sido eliminada correctamente", Notification.Type.TRAY_NOTIFICATION);
+                                } catch (SQLException ex) {
+                                    Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
+                        });
+                        v2.addComponent(btnEliminar);
                     } catch (SQLException ex) {
                         Logger.getLogger(Prueba.class.getName()).log(Level.SEVERE, null, ex);
                     } finally {
@@ -197,15 +227,59 @@ public class Admin extends UI {
                     final TextField apellidos = new TextField("Apellidos", a.getApellidos());
                     apellidos.setColumns(25);
                     v2.addComponent(apellidos);
+                    
+                    Resource res = new ThemeResource("img\\actor\\"+a.getIdActor()+".jpg");
+                    Image image = new Image("Imágen", res);
+                    v2.addComponent(image);
+                    
+                    MultiFileUpload fileUpload = new MultiFileUpload() {
+                        @Override
+                        protected void handleFile(File file, String fileName, String mimeType, long length) {
+                            Path FROM = Paths.get(file.getAbsolutePath());
+                            Path TO = Paths.get("C:\\Users\\Administrador\\Desktop\\peliculasInfo\\src\\main\\webapp\\VAADIN\\themes\\mytheme\\img\\actor\\"+a.getIdActor()+".jpg");
+                            CopyOption[] options = new CopyOption[]{
+                                StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES
+                            }; 
+                            try {
+                                Files.copy(FROM, TO, options);
+                            } catch (IOException ex) {
+                                Logger.getLogger(Prueba.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    };
+                    fileUpload.setWidth("600px");
+                    v2.addComponent(fileUpload);
+                    
                     Button button = new Button("Guardar");
                     button.addClickListener(new Button.ClickListener() {
                         @Override
                         public void buttonClick(Button.ClickEvent event) {
-                            dao.abrirConexion();
-                            //actualizar actor
+                            try {
+                                dao.abrirConexion();
+                                dao.actualizarActor(a.getIdActor(), nombre.getValue(), apellidos.getValue());
+                                recargarArbolActor(tree2);
+                                Notification.show("Hecho", "El actor ha sido actualizado correctamente", Notification.Type.TRAY_NOTIFICATION);
+                            } catch (SQLException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            }
                         }
                     });
                     v2.addComponent(button);
+                    
+                    Button btnEliminar = new Button("Eliminar");
+                    btnEliminar.addClickListener(new Button.ClickListener() {
+                        @Override
+                        public void buttonClick(Button.ClickEvent event) {
+                            try {
+                                dao.abrirConexion();
+                                dao.eliminarActor(a.getIdActor());
+                                Notification.show("Hecho", "El actor ha sido eliminado correctamente", Notification.Type.TRAY_NOTIFICATION);
+                            } catch (SQLException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    });
+                    v2.addComponent(btnEliminar);
                 }
             });
             
@@ -221,15 +295,59 @@ public class Admin extends UI {
                     final TextField apellidos = new TextField("Apellidos", d.getApellidos());
                     apellidos.setColumns(25);
                     v2.addComponent(apellidos);
+                    
+                    Resource res = new ThemeResource("img\\director\\"+d.getIdDirector()+".jpg");
+                    Image image = new Image("Imágen", res);
+                    v2.addComponent(image);
+                    
+                    MultiFileUpload fileUpload = new MultiFileUpload() {
+                        @Override
+                        protected void handleFile(File file, String fileName, String mimeType, long length) {
+                            Path FROM = Paths.get(file.getAbsolutePath());
+                            Path TO = Paths.get("C:\\Users\\Administrador\\Desktop\\peliculasInfo\\src\\main\\webapp\\VAADIN\\themes\\mytheme\\img\\director\\"+d.getIdDirector()+".jpg");
+                            CopyOption[] options = new CopyOption[]{
+                                StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES
+                            }; 
+                            try {
+                                Files.copy(FROM, TO, options);
+                            } catch (IOException ex) {
+                                Logger.getLogger(Prueba.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    };
+                    fileUpload.setWidth("600px");
+                    v2.addComponent(fileUpload);
+                    
                     Button button = new Button("Guardar");
                     button.addClickListener(new Button.ClickListener() {
                         @Override
                         public void buttonClick(Button.ClickEvent event) {
-                            dao.abrirConexion();
-                            //actualizar director
+                            try {
+                                dao.abrirConexion();
+                                dao.actualizarDirector(d.getIdDirector(), nombre.getValue(), apellidos.getValue());
+                                //recargarArbol(tree3);
+                                Notification.show("Hecho", "El director ha sido actualizado correctamente", Notification.Type.TRAY_NOTIFICATION);
+                            } catch (SQLException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            }
                         }
                     });
                     v2.addComponent(button);
+                    
+                    Button btnEliminar = new Button("Eliminar");
+                    btnEliminar.addClickListener(new Button.ClickListener() {
+                        @Override
+                        public void buttonClick(Button.ClickEvent event) {
+                            try {
+                                dao.abrirConexion();
+                                dao.eliminarDirector(d.getIdDirector());
+                                Notification.show("Hecho", "El director ha sido eliminado correctamente", Notification.Type.TRAY_NOTIFICATION);
+                            } catch (SQLException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    });
+                    v2.addComponent(btnEliminar);
                 }
             });
 
@@ -242,6 +360,19 @@ public class Admin extends UI {
         }
     }
 
+    private void recargarArbolActor(Tree tree) throws SQLException{
+        tree.removeAllItems();
+        String act = "Actores";
+        DAO dao = new DAO();
+        dao.abrirConexion();
+        List<Actor> listaActores = dao.consultarActores();
+        for (Actor a : listaActores) {
+            tree.addItem(a);
+            tree.setParent(a, act);
+            tree.setItemCaption(a, a.getNombreCompleto());
+            tree.setChildrenAllowed(a, false);
+        }
+    }
     @WebServlet(urlPatterns = "/Admin/*", name = "Admin", asyncSupported = true)
     @VaadinServletConfiguration(ui = Admin.class, productionMode = false)
     public static class MyUIServlet extends VaadinServlet {

@@ -96,8 +96,7 @@ public class Principal extends UI {
         for (int i = 0; i < listaPeliculas.size(); i++) {
             Pelicula p = listaPeliculas.get(i);
             Image portada = new Image();
-            final ExternalResource externalResource = new ExternalResource(
-                    p.getImagen());
+            final ExternalResource externalResource = new ExternalResource(p.getImagen());
             portada.setSource(externalResource);
             Flash trailer = new Flash(null, new ExternalResource(
                     p.getTrailer()));
