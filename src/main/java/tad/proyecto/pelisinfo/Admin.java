@@ -11,6 +11,7 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
+import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalSplitPanel;
@@ -61,30 +62,34 @@ public class Admin extends UI {
 
             final BeanItemContainer<Director> bdir = new BeanItemContainer(Director.class, listaDirectores);
 
-            Tree tree = new Tree("Administracion");
+            Tree tree1 = new Tree("Administración:");
             String pel = "Peliculas";
-            tree.addItem(pel);
+            tree1.addItem(pel);
             for (Pelicula p : listaPeliculas) {
-                tree.addItem(p);
-                tree.setParent(p, pel);
-                tree.setChildrenAllowed(p, false);
+                tree1.addItem(p);
+                tree1.setParent(p, pel);
+                tree1.setChildrenAllowed(p, false);
             }
+            Tree tree2 = new Tree("");
             String act = "Actores";
-            tree.addItem(act);
+            tree2.addItem(act);
             for (Actor a : listaActores) {
-                tree.addItem(a.getNombre() + " " + a.getApellidos());
-                tree.setParent(a.getNombre() + " " + a.getApellidos(), act);
-                tree.setChildrenAllowed(a.getNombre() + " " + a.getApellidos(), false);
+                tree2.addItem(a);
+                tree2.setParent(a, act);
+                tree2.setItemCaption(a, a.getNombreCompleto());
+                tree2.setChildrenAllowed(a, false);
             }
+            Tree tree3 = new Tree("");
             String dic = "Directores";
-            tree.addItem(dic);
+            tree3.addItem(dic);
             for (Director d : listaDirectores) {
-                tree.addItem(d.getNombre() + " " + d.getApellidos());
-                tree.setParent(d.getNombre() + " " + d.getApellidos(), dic);
-                tree.setChildrenAllowed(d.getNombre() + " " + d.getApellidos(), false);
+                tree3.addItem(d);
+                tree3.setParent(d, dic);
+                tree3.setItemCaption(d, d.getNombreCompleto());
+                tree3.setChildrenAllowed(d, false);
             }
-            tree.setSelectable(true);
-            tree.addValueChangeListener(new Property.ValueChangeListener() {
+            tree1.setSelectable(true);
+            tree1.addValueChangeListener(new Property.ValueChangeListener() {
                 @Override
                 public void valueChange(Property.ValueChangeEvent event) {
                     try {
@@ -158,7 +163,6 @@ public class Admin extends UI {
                                                 Notification.Type.ERROR_MESSAGE);
                                     } else {
                                         dao.actualizarPelicula(p.getIdPelicula(), director.getValue(), titulo.getValue(), Integer.parseInt(anio.getValue()), pais.getValue(), genero.getValue(), sinopsis.getValue(), Integer.parseInt(duracion.getValue()), portada.getValue(), trailer.getValue());
-                                        v2.addComponent(new Label(actores.getValue() + " " + p.getIdPelicula()));
                                         dao.actualizarActorPelicula((Collection) actores.getValue(), p.getIdPelicula());
                                         Notification.show("Hecho", "La pelicula ha sido actualizada correctamente",
                                                 Notification.Type.TRAY_NOTIFICATION);
@@ -181,7 +185,57 @@ public class Admin extends UI {
                 }
             });
 
-            v1.addComponent(tree);
+            tree2.setSelectable(true);
+            tree2.addValueChangeListener(new Property.ValueChangeListener() {
+                @Override
+                public void valueChange(Property.ValueChangeEvent event) {
+                    v2.removeAllComponents();
+                    final Actor a = (Actor) event.getProperty().getValue();
+                    final TextField nombre = new TextField("Nombre", a.getNombre());
+                    nombre.setColumns(25);
+                    v2.addComponent(nombre);
+                    final TextField apellidos = new TextField("Apellidos", a.getApellidos());
+                    apellidos.setColumns(25);
+                    v2.addComponent(apellidos);
+                    Button button = new Button("Guardar");
+                    button.addClickListener(new Button.ClickListener() {
+                        @Override
+                        public void buttonClick(Button.ClickEvent event) {
+                            dao.abrirConexion();
+                            //actualizar actor
+                        }
+                    });
+                    v2.addComponent(button);
+                }
+            });
+            
+            tree3.setSelectable(true);
+            tree3.addValueChangeListener(new Property.ValueChangeListener() {
+                @Override
+                public void valueChange(Property.ValueChangeEvent event) {
+                    v2.removeAllComponents();
+                    final Director d = (Director) event.getProperty().getValue();
+                    final TextField nombre = new TextField("Nombre", d.getNombre());
+                    nombre.setColumns(25);
+                    v2.addComponent(nombre);
+                    final TextField apellidos = new TextField("Apellidos", d.getApellidos());
+                    apellidos.setColumns(25);
+                    v2.addComponent(apellidos);
+                    Button button = new Button("Guardar");
+                    button.addClickListener(new Button.ClickListener() {
+                        @Override
+                        public void buttonClick(Button.ClickEvent event) {
+                            dao.abrirConexion();
+                            //actualizar director
+                        }
+                    });
+                    v2.addComponent(button);
+                }
+            });
+
+            v1.addComponent(tree1);
+            v1.addComponent(tree2);
+            v1.addComponent(tree3);
             dao.cerrarConexion();
         } catch (SQLException ex) {
             Logger.getLogger(Prueba.class.getName()).log(Level.SEVERE, null, ex);
