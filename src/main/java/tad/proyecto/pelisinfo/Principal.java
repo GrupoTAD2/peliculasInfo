@@ -374,7 +374,7 @@ public class Principal extends UI {
         v1.addComponent(btnFiltrar);
     }
 
-    @WebServlet(urlPatterns = "/Principal/*", name = "Principal", asyncSupported = true)
+    @WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true)
     @VaadinServletConfiguration(ui = Principal.class, productionMode = false)
     public static class MyUIServlet extends VaadinServlet {
     }
