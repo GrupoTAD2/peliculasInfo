@@ -105,7 +105,13 @@
             <artifactId>junit-addons</artifactId>
             <version>0.1</version>
         </dependency>
-    </dependencies>
+	 <dependency>
+	  <groupId>com.vaadin.addon</groupId>
+	  <artifactId>vaadin-charts</artifactId>
+	  <version>1.0.0</version>
+	  <type>jar</type>
+	 </dependency>
+	</dependencies>
 
     <build>
         <plugins>
