@@ -9,7 +9,6 @@ import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.server.ExternalResource;
-import com.vaadin.server.Sizeable;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.ui.Button;
@@ -32,9 +31,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- */
 @Theme("mytheme")
 @Title("pelisInfo")
 @Widgetset("tad.proyecto.pelisinfo.MyAppWidgetset")
@@ -54,12 +50,12 @@ public class Principal extends UI {
         VerticalSplitPanel v2 = new VerticalSplitPanel();
         v2.addComponent(h1);
         v2.addComponent(h2);
-        v2.setSplitPosition(20, Sizeable.UNITS_PERCENTAGE);
+        v2.setSplitPosition(20, Unit.PERCENTAGE);
 
         HorizontalSplitPanel layout = new HorizontalSplitPanel();
         layout.addComponent(v1);
         layout.addComponent(v2);
-        layout.setSplitPosition(20, Sizeable.UNITS_PERCENTAGE);
+        layout.setSplitPosition(17, Unit.PERCENTAGE);
 
         setContent(layout);
 
@@ -68,7 +64,13 @@ public class Principal extends UI {
         List<Actor> listaActores = new ArrayList();
 
         final DAO dao = new DAO();
-        dao.abrirConexion();
+        try {
+            dao.abrirConexion();
+        } catch (InstantiationException ex) {
+            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         try {
             listaPeliculas = dao.consultarPeliculas();
@@ -93,27 +95,31 @@ public class Principal extends UI {
         table.addContainerProperty("Duracion", Integer.class, null);
         table.addContainerProperty("Trailer", Flash.class, null);
 
-        for (int i = 0; i < listaPeliculas.size(); i++) {
-            Pelicula p = listaPeliculas.get(i);
-            Image portada = new Image();
-            final ExternalResource externalResource = new ExternalResource(
-                    p.getImagen());
-            portada.setSource(externalResource);
-            Flash trailer = new Flash(null, new ExternalResource(
-                    p.getTrailer()));
-            trailer.setParameter("allowFullScreen", "true");
-            trailer.setWidth(280.0f, Unit.PIXELS);
-            trailer.setHeight(235.0f, Unit.PIXELS);
-            table.addItem(new Object[]{portada, p.getTitulo(), p.getAnio(), p.getPais(), p.getDuracion(), trailer}, p.getIdPelicula());
-        }
-
         table.setPageLength(table.size());
         table.setSelectable(true);
+
+        for (Pelicula p : listaPeliculas) {
+            Image portada = new Image();
+            final ExternalResource externalResource = new ExternalResource(p.getImagen());
+            portada.setSource(externalResource);
+            portada.setWidth("180");
+            Flash trailer = new Flash(null, new ExternalResource(p.getTrailer()));
+            trailer.setParameter("allowFullScreen", "true");
+            trailer.setWidth("340");
+            trailer.setHeight("300");
+            table.addItem(new Object[]{portada, p.getTitulo(), p.getAnio(), p.getPais(), p.getDuracion(), trailer}, p.getIdPelicula());
+        }
 
         table.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                dao.abrirConexion();
+                try {
+                    dao.abrirConexion();
+                } catch (InstantiationException ex) {
+                    Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IllegalAccessException ex) {
+                    Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 Pelicula p = null;
                 Director d = null;
                 List<Actor> a = null;
@@ -174,6 +180,10 @@ public class Principal extends UI {
                     pel = dao.busqueda(buscar.getValue());
                 } catch (SQLException ex) {
                     Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InstantiationException ex) {
+                    Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IllegalAccessException ex) {
+                    Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
                 } finally {
                     try {
                         dao.cerrarConexion();
@@ -181,17 +191,15 @@ public class Principal extends UI {
                         Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                for (int i = 0; i < pel.size(); i++) {
-                    Pelicula p = pel.get(i);
+                for (Pelicula p : pel) {
                     Image portada = new Image();
-                    final ExternalResource externalResource = new ExternalResource(
-                            p.getImagen());
+                    final ExternalResource externalResource = new ExternalResource(p.getImagen());
                     portada.setSource(externalResource);
-                    Flash trailer = new Flash(null, new ExternalResource(
-                            p.getTrailer()));
+                    portada.setWidth("180");
+                    Flash trailer = new Flash(null, new ExternalResource(p.getTrailer()));
                     trailer.setParameter("allowFullScreen", "true");
-                    trailer.setWidth(280.0f, Unit.PIXELS);
-                    trailer.setHeight(235.0f, Unit.PIXELS);
+                    trailer.setWidth("340");
+                    trailer.setHeight("300");
                     table2.addItem(new Object[]{portada, p.getTitulo(), p.getAnio(), p.getPais(), p.getDuracion(), trailer}, p.getIdPelicula());
                 }
                 table2.setPageLength(table2.size());
@@ -199,7 +207,13 @@ public class Principal extends UI {
                 table2.addValueChangeListener(new Property.ValueChangeListener() {
                     @Override
                     public void valueChange(Property.ValueChangeEvent event) {
-                        dao.abrirConexion();
+                        try {
+                            dao.abrirConexion();
+                        } catch (InstantiationException ex) {
+                            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IllegalAccessException ex) {
+                            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                         Pelicula p = null;
                         Director d = null;
                         List<Actor> a = null;
@@ -242,7 +256,6 @@ public class Principal extends UI {
         });
         h1.addComponent(button1);
         h2.addComponent(table);
-        v1.addComponent(new Label("Filtros:"));
 
         BeanItemContainer<Director> bdir = new BeanItemContainer(Director.class, listaDirectores);
         final ComboBox cd = new ComboBox("Directores", bdir);
@@ -254,8 +267,10 @@ public class Principal extends UI {
         ca.setItemCaptionPropertyId("nombreCompleto");
         v1.addComponent(ca);
 
-        Button button2 = new Button("Filtrar");
-        button2.addClickListener(new Button.ClickListener() {
+        Button btnFiltrar = new Button("Filtrar");
+        btnFiltrar.addStyleName("btn-filtrar");
+
+        btnFiltrar.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 h2.removeAllComponents();
@@ -282,6 +297,10 @@ public class Principal extends UI {
                     }
                 } catch (SQLException ex) {
                     Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InstantiationException ex) {
+                    Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IllegalAccessException ex) {
+                    Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
                 } finally {
                     try {
                         dao.cerrarConexion();
@@ -289,17 +308,15 @@ public class Principal extends UI {
                         Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                for (int i = 0; i < pel.size(); i++) {
-                    Pelicula p = pel.get(i);
+                for (Pelicula p : pel) {
                     Image portada = new Image();
-                    final ExternalResource externalResource = new ExternalResource(
-                            p.getImagen());
+                    final ExternalResource externalResource = new ExternalResource(p.getImagen());
                     portada.setSource(externalResource);
-                    Flash trailer = new Flash(null, new ExternalResource(
-                            p.getTrailer()));
+                    portada.setWidth("180");
+                    Flash trailer = new Flash(null, new ExternalResource(p.getTrailer()));
                     trailer.setParameter("allowFullScreen", "true");
-                    trailer.setWidth(280.0f, Unit.PIXELS);
-                    trailer.setHeight(235.0f, Unit.PIXELS);
+                    trailer.setWidth("340");
+                    trailer.setHeight("300");
                     table3.addItem(new Object[]{portada, p.getTitulo(), p.getAnio(), p.getPais(), p.getDuracion(), trailer}, p.getIdPelicula());
                 }
                 table3.setPageLength(table3.size());
@@ -307,7 +324,13 @@ public class Principal extends UI {
                 table3.addValueChangeListener(new Property.ValueChangeListener() {
                     @Override
                     public void valueChange(Property.ValueChangeEvent event) {
-                        dao.abrirConexion();
+                        try {
+                            dao.abrirConexion();
+                        } catch (InstantiationException ex) {
+                            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IllegalAccessException ex) {
+                            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                         Pelicula p = null;
                         Director d = null;
                         List<Actor> a = null;
@@ -348,7 +371,7 @@ public class Principal extends UI {
                 h2.addComponent(table3);
             }
         });
-        v1.addComponent(button2);
+        v1.addComponent(btnFiltrar);
     }
 
     @WebServlet(urlPatterns = "/Principal/*", name = "Principal", asyncSupported = true)

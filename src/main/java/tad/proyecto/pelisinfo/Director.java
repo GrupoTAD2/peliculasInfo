@@ -5,10 +5,6 @@
  */
 package tad.proyecto.pelisinfo;
 
-/**
- *
- * @author Patricia
- */
 public class Director {
     private int idDirector;
     private String nombre;

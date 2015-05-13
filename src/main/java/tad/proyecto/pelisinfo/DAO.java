@@ -15,13 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-/**
- *
- * @author Patricia
- */
 public class DAO {
 
     private Connection conn;
@@ -38,7 +32,7 @@ public class DAO {
         this.conn = conn;
     }
 
-    public void abrirConexion() {
+    public void abrirConexion() throws InstantiationException, IllegalAccessException {
         String login = "root";
         String password = "";
         String url = "jdbc:mysql://localhost:3306/pelisInfo";
@@ -50,10 +44,6 @@ public class DAO {
             System.out.println(ex);
         } catch (ClassNotFoundException ex) {
             System.out.println(ex);
-        } catch (InstantiationException ex) {
-            Logger.getLogger(Prueba.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(Prueba.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -210,6 +200,35 @@ public class DAO {
             preparedStatement = this.getConn().prepareStatement(insertTableSQL);
             retorno = preparedStatement.executeUpdate();
         }
+    }
+    
+    public void eliminarPelicula(int idPelicula) throws SQLException {
+        String deleteTableSQL = "DELETE FROM pelicula WHERE idPelicula='" + idPelicula + "'";
+        System.out.print("SQL: " + deleteTableSQL);
+        PreparedStatement preparedStatement = this.getConn().prepareStatement(deleteTableSQL);
+        int retorno = preparedStatement.executeUpdate();
+    }
+    
+    public void eliminarActor(int idActor) throws SQLException {
+        String deleteTableSQL = "DELETE FROM actor WHERE idActor='" + idActor + "'";
+        PreparedStatement preparedStatement = this.getConn().prepareStatement(deleteTableSQL);
+        int retorno = preparedStatement.executeUpdate();
+    }
+    
+    public void eliminarDirector(int idDirector) throws SQLException {
+        String deleteTableSQL = "DELETE FROM director WHERE idDirector='" + idDirector + "'";
+        PreparedStatement preparedStatement = this.getConn().prepareStatement(deleteTableSQL);
+        int retorno = preparedStatement.executeUpdate();
+    }
+    
+    public void actualizarActor(int idActor, String nombre, String apellidos) throws SQLException {
+        String updateTableSQL = "UPDATE actor SET nombre='" + nombre + "', apellidos='" + apellidos + "' WHERE idActor='" + idActor + "'";
+        PreparedStatement preparedStatement = this.getConn().prepareStatement(updateTableSQL);
+    }
+    
+    public void actualizarDirector(int idDirector, String nombre, String apellidos) throws SQLException {
+        String updateTableSQL = "UPDATE director SET nombre='" + nombre + "', apellidos='" + apellidos + "' WHERE idDirector = '" + idDirector + "'";
+        PreparedStatement preparedStatement = this.getConn().prepareStatement(updateTableSQL);
     }
     
 }

@@ -5,10 +5,6 @@
  */
 package tad.proyecto.pelisinfo;
 
-/**
- *
- * @author Grupo 02
- */
 public class Pelicula {
 
     private int idPelicula;

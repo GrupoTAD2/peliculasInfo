@@ -8,14 +8,14 @@ import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.server.Sizeable;
+import com.vaadin.server.FileResource;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinServlet;
-import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalSplitPanel;
-import com.vaadin.ui.Label;
+import com.vaadin.ui.Image;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
@@ -23,15 +23,20 @@ import com.vaadin.ui.Tree;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.vaadin.easyuploads.MultiFileUpload;
 
-/**
- *
- */
 @Theme("mytheme")
 @Title("pelisInfo")
 @Widgetset("tad.proyecto.pelisinfo.MyAppWidgetset")
@@ -49,7 +54,7 @@ public class Admin extends UI {
             HorizontalSplitPanel layout = new HorizontalSplitPanel();
             layout.addComponent(v1);
             layout.addComponent(v2);
-            layout.setSplitPosition(30, Sizeable.UNITS_PERCENTAGE);
+            layout.setSplitPosition(30, Unit.PERCENTAGE);
 
             setContent(layout);
 
@@ -169,12 +174,40 @@ public class Admin extends UI {
                                     }
                                 } catch (SQLException ex) {
                                     Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                                } catch (InstantiationException ex) {
+                                    Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                                } catch (IllegalAccessException ex) {
+                                    Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
                                 }
                             }
                         });
                         v2.addComponent(button);
+
+                        Button btnEliminar = new Button("Eliminar");
+                        btnEliminar.addClickListener(new Button.ClickListener() {
+                            @Override
+                            public void buttonClick(Button.ClickEvent event) {
+                                try {
+                                    dao.abrirConexion();
+                                    System.out.printf("idPelicula" + p.getIdPelicula());
+                                    dao.eliminarPelicula(p.getIdPelicula());
+                                    Notification.show("Hecho", "La pelicula ha sido eliminada correctamente", Notification.Type.TRAY_NOTIFICATION);
+                                } catch (SQLException ex) {
+                                    Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                                } catch (InstantiationException ex) {
+                                    Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                                } catch (IllegalAccessException ex) {
+                                    Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
+                        });
+                        v2.addComponent(btnEliminar);
                     } catch (SQLException ex) {
-                        Logger.getLogger(Prueba.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (InstantiationException ex) {
+                        Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IllegalAccessException ex) {
+                        Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
                     } finally {
                         try {
                             dao.cerrarConexion();
@@ -197,18 +230,71 @@ public class Admin extends UI {
                     final TextField apellidos = new TextField("Apellidos", a.getApellidos());
                     apellidos.setColumns(25);
                     v2.addComponent(apellidos);
+
+                    String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
+                    FileResource resource = new FileResource(new File(basepath + "/WEB-INF/images/actor/" + a.getIdActor() + ".png"));
+                    Image image = new Image("Imágen:", resource);
+                    v2.addComponent(image);
+
+                    MultiFileUpload fileUpload = new MultiFileUpload() {
+                        @Override
+                        protected void handleFile(File file, String fileName, String mimeType, long length) {
+                            Path FROM = Paths.get(file.getAbsolutePath());
+                            Path TO = Paths.get(VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/WEB-INF/images/actor/" + a.getIdActor() + ".png");
+                            CopyOption[] options = new CopyOption[]{
+                                StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES
+                            };
+                            try {
+                                Files.copy(FROM, TO, options);
+                            } catch (IOException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    };
+                    fileUpload.setWidth("600px");
+                    v2.addComponent(fileUpload);
+
                     Button button = new Button("Guardar");
                     button.addClickListener(new Button.ClickListener() {
                         @Override
                         public void buttonClick(Button.ClickEvent event) {
-                            dao.abrirConexion();
-                            //actualizar actor
+                            try {
+                                dao.abrirConexion();
+                                dao.actualizarActor(a.getIdActor(), nombre.getValue(), apellidos.getValue());
+                                Notification.show("Hecho", "El actor ha sido actualizado correctamente", Notification.Type.TRAY_NOTIFICATION);
+                            } catch (SQLException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            } catch (InstantiationException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            } catch (IllegalAccessException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            }
                         }
                     });
                     v2.addComponent(button);
+
+                    Button btnEliminar = new Button("Eliminar");
+                    btnEliminar.addClickListener(new Button.ClickListener() {
+                        @Override
+                        public void buttonClick(Button.ClickEvent event) {
+                            try {
+                                dao.abrirConexion();
+                                dao.eliminarActor(a.getIdActor());
+                                Notification.show("Hecho", "El actor ha sido eliminado correctamente", Notification.Type.TRAY_NOTIFICATION);
+                            } catch (SQLException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            } catch (InstantiationException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            } catch (IllegalAccessException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    });
+                    v2.addComponent(btnEliminar);
+
                 }
             });
-            
+
             tree3.setSelectable(true);
             tree3.addValueChangeListener(new Property.ValueChangeListener() {
                 @Override
@@ -221,15 +307,67 @@ public class Admin extends UI {
                     final TextField apellidos = new TextField("Apellidos", d.getApellidos());
                     apellidos.setColumns(25);
                     v2.addComponent(apellidos);
+
+                    String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
+                    FileResource resource = new FileResource(new File(basepath + "/WEB-INF/images/director/" + d.getIdDirector() + ".png"));
+                    Image image = new Image("Imágen:", resource);
+                    v2.addComponent(image);
+
+                    MultiFileUpload fileUpload = new MultiFileUpload() {
+                        @Override
+                        protected void handleFile(File file, String fileName, String mimeType, long length) {
+                            Path FROM = Paths.get(file.getAbsolutePath());
+                            Path TO = Paths.get(VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/WEB-INF/images/director/" + d.getIdDirector() + ".png");
+                            CopyOption[] options = new CopyOption[]{
+                                StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES
+                            };
+                            try {
+                                Files.copy(FROM, TO, options);
+                            } catch (IOException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    };
+                    fileUpload.setWidth("600px");
+                    v2.addComponent(fileUpload);
+
                     Button button = new Button("Guardar");
                     button.addClickListener(new Button.ClickListener() {
                         @Override
                         public void buttonClick(Button.ClickEvent event) {
-                            dao.abrirConexion();
-                            //actualizar director
+                            try {
+                                dao.abrirConexion();
+                                dao.actualizarDirector(d.getIdDirector(), nombre.getValue(), apellidos.getValue());
+                                Notification.show("Hecho", "El director ha sido actualizado correctamente", Notification.Type.TRAY_NOTIFICATION);
+                            } catch (SQLException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            } catch (InstantiationException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            } catch (IllegalAccessException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            }
                         }
                     });
                     v2.addComponent(button);
+
+                    Button btnEliminar = new Button("Eliminar");
+                    btnEliminar.addClickListener(new Button.ClickListener() {
+                        @Override
+                        public void buttonClick(Button.ClickEvent event) {
+                            try {
+                                dao.abrirConexion();
+                                dao.eliminarDirector(d.getIdDirector());
+                                Notification.show("Hecho", "El director ha sido eliminado correctamente", Notification.Type.TRAY_NOTIFICATION);
+                            } catch (SQLException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            } catch (InstantiationException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            } catch (IllegalAccessException ex) {
+                                Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    });
+                    v2.addComponent(btnEliminar);
                 }
             });
 
@@ -238,7 +376,11 @@ public class Admin extends UI {
             v1.addComponent(tree3);
             dao.cerrarConexion();
         } catch (SQLException ex) {
-            Logger.getLogger(Prueba.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            Logger.getLogger(Admin.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
